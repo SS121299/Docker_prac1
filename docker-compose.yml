@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+
+  web1:
+    build: ./web1
+    ports:
+      - "3001:3000"
+
+  web2:
+    build: ./web2
+    ports:
+     - "3002:3000"
+
+  nginx-reverse:
+    build: ./reverse-proxy
+    ports:
+     - "8081:80"
+    depends_on:
+     - web1
+
+  haproxy:
+    build: ./load-balancer
+    ports:
+      - "8090:80"
+    depends_on:
+      - web1
+      - web2
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  squid-proxy:
+    build: ./forward-proxy
+    ports:
+      - "3128:3128"
+
+
+  firewall:
+    image: ubuntu
+    command: sleep infinity
+    privileged: true
+
+
+  static:
+    image: nginx:alpine
+    volumes:
+      - ./static-site:/usr/share/nginx/html
+    ports:
+      - "8080:80"
+
